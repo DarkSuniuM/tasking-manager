@@ -166,7 +166,7 @@ def downgrade():
     # Remove all mappings made
     org_ids = conn.execute("select id, name from organisations")
     for org_id, org_name in org_ids:
-        projects = conne.execute(
+        projects = conn.execute(
             "select id from projects where organisation_id=" + org_id
         )
         for project in projects:
