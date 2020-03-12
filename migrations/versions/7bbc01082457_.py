@@ -6,6 +6,7 @@ Create Date: 2020-01-29 11:19:20.113089
 
 """
 from alembic import op
+import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
@@ -102,7 +103,10 @@ def upgrade():
 
     # Select all existing distinct organisation tags from projects table
     org_tags = conn.execute("select distinct(organisation_tag) from projects")
+    total_orgs = org_tags.rowcount
+    count = 0
     for org_tag in org_tags:
+        count = count + 1
         original_org_name = str(org_tag[0])
         if len(original_org_name) > 1:
             mapped_org = ""
@@ -152,11 +156,26 @@ def upgrade():
                         )
 
             orgs_inserted.append(mapped_org)
+        if count == total_orgs:
+            op.drop_column("projects", "organisation_tag")
 
 
 def downgrade():
     conn = op.get_bind()
+    op.add_column("projects", sa.Column("organisation_tag", sa.String(), nullable=True))
     # Remove all mappings made
+    org_ids = conn.execute("select id, name from organisations")
+    for org_id, org_name in org_ids:
+        projects = conne.execute(
+            "select id from projects where organisation_id=" + org_id
+        )
+        for project in projects:
+            conn.execute(
+                "update projects set organisation_tag="
+                + str(org_name)
+                + "where organisation_id="
+                + str(org_id)
+            )
     conn.execute("delete from organisation_managers where organisation_id is not null")
     conn.execute(
         "update projects set organisation_id = null where organisation_id is not null"
