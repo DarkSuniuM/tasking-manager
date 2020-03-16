@@ -102,4 +102,3 @@ def downgrade():
     conn.execute("delete from teams where name = 'undefined-validators';")
     conn.execute("delete from teams where name = 'undefined-pms';")
     conn.execute("delete from organisations where name = 'undefined';")
-    pass
